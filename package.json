@@ -1,0 +1,72 @@
+{
+  "name": "@icogenie/mcp",
+  "version": "0.3.5",
+  "description": "MCP server for IcoGenie - Enable AI agents to generate icons programmatically",
+  "type": "module",
+  "bin": {
+    "icogenie-mcp": "dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup src/index.ts --format esm --target node18 --watch",
+    "type-check": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "prepublishOnly": "pnpm run build && pnpm run type-check",
+    "prepack": "pnpm run build",
+    "version": "pnpm run build",
+    "postversion": "git push && git push --tags",
+    "release:patch": "npm version patch -m 'chore(icogenie-mcp): release v%s' --tag-version-prefix='mcp-v'",
+    "release:minor": "npm version minor -m 'chore(icogenie-mcp): release v%s' --tag-version-prefix='mcp-v'",
+    "release:major": "npm version major -m 'chore(icogenie-mcp): release v%s' --tag-version-prefix='mcp-v'"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "conf": "^12.0.0",
+    "open": "^10.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@icogenie/shared": "workspace:*",
+    "@icogenie/typescript-config": "workspace:*",
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "icon",
+    "svg",
+    "generator",
+    "ai",
+    "icogenie",
+    "claude",
+    "anthropic"
+  ],
+  "author": {
+    "name": "ICOGenie",
+    "url": "https://www.icogenie.xyz"
+  },
+  "license": "MIT",
+  "homepage": "https://www.icogenie.xyz",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/icogenie/icogenie.git",
+    "directory": "packages/mcp"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}
