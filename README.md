@@ -1,5 +1,10 @@
 # @icogenie/mcp
 
+[![npm version](https://img.shields.io/npm/v/@icogenie/mcp.svg)](https://www.npmjs.com/package/@icogenie/mcp)
+[![npm downloads](https://img.shields.io/npm/dm/@icogenie/mcp.svg)](https://www.npmjs.com/package/@icogenie/mcp)
+[![MCP Protocol](https://img.shields.io/badge/MCP-1.0+-blue.svg)](https://modelcontextprotocol.io)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 MCP (Model Context Protocol) server for IcoGenie. Enables AI agents like Claude to generate production-ready SVG icons programmatically.
 
 ## Installation
@@ -202,10 +207,22 @@ generate_bundle({
 
 Purchase credits at [www.icogenie.xyz](https://www.icogenie.xyz).
 
+## When to Use MCP vs CLI vs Web
+
+| Use Case | Best Option |
+|----------|-------------|
+| Generate icons inside Claude/Cursor | **MCP** |
+| Automate in CI/CD pipelines | **CLI** |
+| Quick one-off generation | **Web** |
+| Batch generate icon bundles | **CLI** or **MCP** |
+| Browse and manage icon library | **Web** |
+
 ## Related
 
 - [@icogenie/cli](https://www.npmjs.com/package/@icogenie/cli) - Command-line interface
 - [IcoGenie Web](https://www.icogenie.xyz) - Web application
+- [AI Agent Docs](https://www.icogenie.xyz/ai-docs) - Machine-readable documentation
+- [Developer Docs](https://www.icogenie.xyz/docs) - Integration guides
 
 ## License
 
