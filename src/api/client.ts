@@ -2,47 +2,26 @@
  * HTTP client for IcoGenie API
  */
 
-import { readFileSync, statSync } from 'fs';
-import { extname } from 'path';
+import { ApiError, type ReferenceImage } from '@icogenie/shared';
+export { readReferenceImage, type ReferenceImage, ApiError } from '@icogenie/shared';
+export type {
+  GenerateResponse,
+  RegenerateResponse,
+  CreditsResponse,
+  DownloadResult,
+  NormalizeResponse,
+  BundleResponse,
+} from '@icogenie/shared/api-types';
+import type {
+  GenerateResponse,
+  RegenerateResponse,
+  CreditsResponse,
+  DownloadResult,
+  NormalizeResponse,
+  BundleResponse,
+} from '@icogenie/shared/api-types';
 import { getApiUrl } from '../auth/config.js';
 import { ensureAuth, handleAuthError } from '../auth/middleware.js';
-
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public readonly statusCode: number,
-    public readonly details?: unknown
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
-}
-
-// Reference image types
-export interface ReferenceImage {
-  data: string; // base64
-  mimeType: string;
-}
-
-const SUPPORTED_IMAGE_FORMATS = ['.png', '.jpg', '.jpeg', '.webp'];
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
-
-export function readReferenceImage(filePath: string): ReferenceImage {
-  const ext = extname(filePath).toLowerCase();
-  if (!SUPPORTED_IMAGE_FORMATS.includes(ext)) {
-    throw new Error(`Unsupported image format: ${ext}. Supported: ${SUPPORTED_IMAGE_FORMATS.join(', ')}`);
-  }
-
-  const stats = statSync(filePath);
-  if (stats.size > MAX_IMAGE_SIZE) {
-    throw new Error(`Image too large: ${(stats.size / 1024 / 1024).toFixed(1)}MB. Max: 5MB`);
-  }
-
-  const buffer = readFileSync(filePath);
-  const mimeType = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
-
-  return { data: buffer.toString('base64'), mimeType };
-}
 
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'DELETE';
@@ -117,72 +96,6 @@ export async function request<T>(
   return makeRequest();
 }
 
-// API Response types (aligned with unified web API)
-export interface GenerateResponse {
-  success: boolean;
-  sessionId: string;
-  credits: number;
-  preview: string; // Public URL to watermarked preview
-  previews: string[]; // Public URLs to watermarked previews
-  mimeType: string;
-  description: string;
-  normalizedPrompt: string;
-  suggestions: string[];
-  sessionData: {
-    prompt: string;
-    normalizedPrompt: string;
-    description: string;
-    imagePrompt: string;
-    variations: number;
-    style: string;
-  };
-}
-
-export interface RegenerateResponse {
-  success: boolean;
-  index: number;
-  preview: string;
-  credits: number | null;
-}
-
-export interface CreditsResponse {
-  authenticated: boolean;
-  credits: number;
-  team: { id: string; name: string };
-  user: { id: string; email: string; name?: string };
-  source: 'cookie' | 'bearer';
-}
-
-// Download returns Response object with ZIP
-export interface DownloadResult {
-  response: Response;
-  filename: string;
-}
-
-export interface NormalizeResponse {
-  success: boolean;
-  bundleType: string;
-  suggestedCount: number;
-  icons: Array<{ name: string; description: string; category?: string }>;
-  styleRecommendation: 'solid' | 'outline';
-  reasoning: string;
-}
-
-export interface BundleResponse {
-  bundleId: string;
-  previews: Array<{ name: string; description: string; preview: string /* Public URL to watermarked preview */ }>;
-  extractedStyle?: string;
-  pricing: {
-    totalIcons: number;
-    previewCredits: number;
-    downloadCredits: number;
-    totalCredits: number;
-  };
-  batchCount: number;
-  creditsUsed: number;
-  credits: number;
-}
-
 // API functions
 export async function generate(options: {
   prompt: string;
@@ -223,10 +136,12 @@ export async function getCredits(): Promise<CreditsResponse> {
 export async function download(options: {
   generationId?: string;
   bundleId?: string;
+  removeBg?: boolean;
 }): Promise<DownloadResult> {
   const params: Record<string, string> = {};
   if (options.generationId) params.generation_id = options.generationId;
   if (options.bundleId) params.bundle_id = options.bundleId;
+  if (options.removeBg) params.remove_bg = 'true';
 
   const response = await request<Response>('/download', {
     method: 'GET',

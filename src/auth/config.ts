@@ -1,43 +1,48 @@
 /**
  * Configuration management for IcoGenie MCP Server
  * Shares config with CLI at ~/.icogenie/
+ * Uses plain fs instead of 'conf' package for CJS bundler compatibility (Smithery).
  */
 
-import Conf from 'conf';
+import type { Credentials } from '@icogenie/shared';
 import { homedir } from 'os';
 import { join } from 'path';
-import { mkdirSync, existsSync } from 'fs';
+import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'fs';
 
 const configDir = process.env.ICOGENIE_CONFIG_DIR || join(homedir(), '.icogenie');
-if (!existsSync(configDir)) {
-  mkdirSync(configDir, { recursive: true });
-}
+const configPath = join(configDir, 'config.json');
 
-export interface Credentials {
-  sessionToken: string;
-  userId: string;
-  userEmail: string;
-  userName?: string;
-  teamId: string;
-  teamName: string;
-  createdAt: string;
-}
+export type { Credentials } from '@icogenie/shared';
 
 interface Config {
   apiUrl: string;
   credentials?: Credentials;
 }
 
-const config = new Conf<Config>({
-  projectName: 'icogenie',
-  cwd: configDir,
-  defaults: {
-    apiUrl: 'https://www.icogenie.xyz',
-  },
-});
+const defaults: Config = {
+  apiUrl: 'https://www.icogenie.xyz',
+};
+
+function readConfig(): Config {
+  try {
+    if (existsSync(configPath)) {
+      return { ...defaults, ...JSON.parse(readFileSync(configPath, 'utf-8')) };
+    }
+  } catch {
+    // Corrupted file, return defaults
+  }
+  return { ...defaults };
+}
+
+function writeConfig(config: Config): void {
+  if (!existsSync(configDir)) {
+    mkdirSync(configDir, { recursive: true });
+  }
+  writeFileSync(configPath, JSON.stringify(config, null, 2));
+}
 
 export function getApiUrl(): string {
-  return process.env.ICOGENIE_API_URL || config.get('apiUrl');
+  return process.env.ICOGENIE_API_URL || readConfig().apiUrl;
 }
 
 export function getCredentials(): Credentials | undefined {
@@ -53,15 +58,19 @@ export function getCredentials(): Credentials | undefined {
       createdAt: new Date().toISOString(),
     };
   }
-  return config.get('credentials');
+  return readConfig().credentials;
 }
 
 export function setCredentials(credentials: Credentials): void {
-  config.set('credentials', credentials);
+  const config = readConfig();
+  config.credentials = credentials;
+  writeConfig(config);
 }
 
 export function clearCredentials(): void {
-  config.delete('credentials');
+  const config = readConfig();
+  delete config.credentials;
+  writeConfig(config);
 }
 
 export function isLoggedIn(): boolean {

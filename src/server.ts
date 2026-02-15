@@ -23,7 +23,7 @@ export function createServer(): McpServer {
     {
       title: 'Generate Icon',
       description:
-        `Generate an AI-powered icon preview. Costs ${CREDIT_CONFIG.costs.preview} credit. Keep prompts minimal - the system normalizes them internally. Verbose descriptions create cluttered icons. Returns generationId for download.`,
+        `Generate an AI-powered icon preview. Costs ${CREDIT_CONFIG.costs.preview} credit. Keep prompts minimal - the system normalizes them internally. Verbose descriptions create cluttered icons. Returns generationId for download. Note: previews are watermarked and low-resolution — for display/evaluation only, not production use. Use download_icon to get the final unwatermarked assets.`,
       inputSchema: generateIconSchema,
     },
     async (args) => {
@@ -41,7 +41,7 @@ export function createServer(): McpServer {
     {
       title: 'Regenerate Icon',
       description:
-        `Regenerate a specific icon variation with an optional custom prompt. Costs ${CREDIT_CONFIG.costs.preview} credit. Use with generationId (single) or bundleId (bundle). After regeneration, save and display the new preview.`,
+        `Regenerate a specific icon variation with an optional custom prompt. Costs ${CREDIT_CONFIG.costs.preview} credit. Use with generationId (single) or bundleId (bundle). After regeneration, save and display the new preview. Note: previews are watermarked and low-resolution — for display/evaluation only, not production use.`,
       inputSchema: regenerateIconSchema,
     },
     async (args) => {
@@ -112,7 +112,7 @@ export function createServer(): McpServer {
     {
       title: 'Generate Bundle',
       description:
-        `Generate a bundle of icons. Costs ${CREDIT_CONFIG.costs.bundlePreview} credit per icon. Keep descriptions minimal - verbose prompts create cluttered icons. Use normalize_bundle first or provide icons directly.`,
+        `Generate a bundle of icons. Costs ${CREDIT_CONFIG.costs.bundlePreview} credit per icon. Keep descriptions minimal - verbose prompts create cluttered icons. Use normalize_bundle first or provide icons directly. Note: previews are watermarked and low-resolution — for display/evaluation only, not production use. Use download_icon to get the final unwatermarked assets.`,
       inputSchema: generateBundleSchema,
     },
     async (args) => {

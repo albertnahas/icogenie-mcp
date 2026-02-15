@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * IcoGenie MCP Server
  *
@@ -8,6 +7,11 @@
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createServer } from './server.js';
+
+/** Sandbox server for Smithery capability scanning */
+export function createSandboxServer() {
+  return createServer();
+}
 
 async function main() {
   const server = createServer();

@@ -3,62 +3,23 @@
  * Triggers browser-based OAuth when no credentials exist
  */
 
-import open from 'open';
-import { getApiUrl, setCredentials, type Credentials } from './config.js';
-
-interface StartAuthResponse {
-  success: boolean;
-  pollToken: string;
-  loginUrl: string;
-  expiresAt: string;
-  expiresInSeconds: number;
-}
-
-interface PollAuthResponse {
-  status: 'pending' | 'approved' | 'expired';
-  sessionToken?: string;
-  user?: {
-    id: string;
-    email: string;
-    name?: string;
-  };
-  team?: {
-    id: string;
-    name: string;
-  };
-}
-
-async function request<T>(endpoint: string, body: Record<string, unknown>): Promise<T> {
-  const url = `${getApiUrl()}/api/cli${endpoint}`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  const data = (await response.json()) as { error?: string; message?: string } & T;
-  if (!response.ok) {
-    throw new Error(data.error || data.message || 'Request failed');
-  }
-  return data as T;
-}
-
-export async function startAuth(): Promise<StartAuthResponse> {
-  return request<StartAuthResponse>('/auth/start', {});
-}
-
-export async function pollAuth(pollToken: string): Promise<PollAuthResponse> {
-  return request<PollAuthResponse>('/auth/poll', { pollToken });
-}
+import {
+  startAuth,
+  pollAuth,
+  type Credentials,
+} from '@icogenie/shared';
+import { getApiUrl, setCredentials } from './config.js';
 
 /**
  * Run the full authentication flow
  * Opens browser for login and polls until approved
  */
 export async function authenticate(): Promise<Credentials> {
-  const { pollToken, loginUrl, expiresInSeconds } = await startAuth();
+  const apiUrl = getApiUrl();
+  const { pollToken, loginUrl, expiresInSeconds } = await startAuth(apiUrl);
 
-  // Open browser for authentication
+  // Open browser for authentication (dynamic import for CJS bundler compatibility)
+  const { default: open } = await import('open');
   await open(loginUrl);
 
   // Poll for approval
@@ -70,7 +31,7 @@ export async function authenticate(): Promise<Credentials> {
     await new Promise((resolve) => setTimeout(resolve, pollInterval));
     attempts++;
 
-    const result = await pollAuth(pollToken);
+    const result = await pollAuth(apiUrl, pollToken);
 
     if (result.status === 'approved' && result.sessionToken && result.user && result.team) {
       const credentials: Credentials = {
