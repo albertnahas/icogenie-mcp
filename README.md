@@ -72,7 +72,7 @@ generate_icon({
 **Returns:** `{ sessionId, preview, previews, creditsRemaining, sessionData, suggestions }`
 
 ### regenerate_icon
-Regenerate a specific icon variation with a custom refinement prompt.
+Regenerate a specific icon variation. Returns 4 candidate previews — use `confirm_regeneration` to finalize your choice (two-phase flow).
 
 **Cost:** 1 credit
 
@@ -85,7 +85,21 @@ regenerate_icon({
 })
 ```
 
-**Returns:** `{ success, index, preview, creditsRemaining }`
+**Returns:** `{ candidates, regenToken, creditsRemaining }`
+
+### confirm_regeneration
+Finalize a regeneration by selecting one of the 4 candidates.
+
+**Cost:** Free (included in regenerate_icon)
+
+```
+confirm_regeneration({
+  regenToken: "tok_abc123",
+  selectedIndex: 2           // 0-3, which candidate to keep
+})
+```
+
+**Returns:** `{ success, preview, creditsRemaining }`
 
 ### check_credits
 Check your current credit balance.
@@ -123,7 +137,7 @@ normalize_bundle({
 })
 ```
 
-**Returns:** `{ icons, bundleType, styleRecommendation, reasoning }`
+**Returns:** `{ bundleId, icons, bundleType, styleRecommendation, reasoning }`
 
 ### generate_bundle
 Generate a bundle of icons from an icon list.
@@ -136,11 +150,67 @@ generate_bundle({
     { name: "home", description: "Home navigation icon" },
     { name: "cart", description: "Shopping cart icon" }
   ],
-  style: "solid"
+  style: "solid",
+  bundleId: "bundle_abc123"  // optional, from normalize_bundle
 })
 ```
 
 **Returns:** `{ bundleId, iconCount, icons: [{ name, description, preview }], pricing, creditsUsed, creditsRemaining }`
+
+### save_to_library
+Save a generated icon to your personal library.
+
+**Cost:** Free
+
+```
+save_to_library({
+  generationId: "abc123",
+  name: "notification-bell",  // optional display name
+  tags: ["ui", "alerts"]      // optional tags
+})
+```
+
+**Returns:** `{ success, libraryItemId }`
+
+### list_library
+List icons saved in your library.
+
+**Cost:** Free
+
+```
+list_library({
+  page: 1,       // optional, default 1
+  limit: 20,     // optional, default 20
+  tag: "ui"      // optional filter
+})
+```
+
+**Returns:** `{ items: [{ id, name, tags, preview, createdAt }], total, page }`
+
+### download_from_library
+Download an icon from your library as SVG + PNG.
+
+**Cost:** Free
+
+```
+download_from_library({
+  libraryItemId: "lib_abc123",
+  outputPath: "./bell-icon.zip"  // optional, returns base64 if omitted
+})
+```
+
+**Returns:** `{ savedTo }` or `{ base64, filename }`
+
+### claim_daily_credits
+Claim 2 free credits, available once every 24 hours.
+
+**Cost:** Free
+
+```
+claim_daily_credits()
+```
+
+**Returns:** `{ credited, creditsRemaining, nextClaimAt }`
 
 ## Example Workflow
 
@@ -156,10 +226,13 @@ generate_bundle({
    → { sessionId: "abc123", preview: "...", creditsRemaining: 49 }
    ```
 
-3. **Refine if needed:**
+3. **Refine if needed (two-phase):**
    ```
    regenerate_icon({ sessionId: "abc123", index: 0, prompt: "Add a dot indicator" })
-   → { preview: "...", creditsRemaining: 48 }
+   → { candidates: ["...", "...", "...", "..."], regenToken: "tok_xyz", creditsRemaining: 48 }
+
+   confirm_regeneration({ regenToken: "tok_xyz", selectedIndex: 1 })
+   → { success: true, preview: "...", creditsRemaining: 48 }
    ```
 
 4. **Download final package:**
@@ -176,10 +249,10 @@ generate_bundle({
    → { icons: [{ name: "cart", ... }, ...], styleRecommendation: "outline" }
    ```
 
-2. **Review and generate:**
+2. **Review and generate (pass bundleId for traceability):**
    ```
-   generate_bundle({ icons: [...], style: "outline" })
-   → { bundleId: "xyz789", icons: [...], credits: { previewUsed: 8 } }
+   generate_bundle({ icons: [...], style: "outline", bundleId: "bundle_abc" })
+   → { bundleId: "bundle_abc", icons: [...], credits: { previewUsed: 8 } }
    ```
 
 3. **Download bundle:**
@@ -204,6 +277,8 @@ generate_bundle({
 | Download (single) | 5 credits |
 | Download (bundle) | 4 credits/icon |
 | Regenerate | 1 credit |
+| Daily claim | 2 free credits/day |
+| Library ops | Free |
 
 Purchase credits at [www.icogenie.xyz](https://www.icogenie.xyz).
 

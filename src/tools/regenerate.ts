@@ -1,9 +1,9 @@
 /**
- * regenerate_icon tool - Regenerate a variation with custom prompt
+ * regenerate_icon tool - Two-phase regeneration: generate candidates
  */
 
 import { z } from 'zod';
-import { regenerate } from '../api/client.js';
+import { regenerateGenerate } from '../api/client.js';
 
 export const regenerateIconSchema = {
   sessionId: z.string().optional().describe('For single icon variations'),
@@ -22,7 +22,7 @@ export async function regenerateIcon(args: {
     throw new Error('Must provide either sessionId or bundleId');
   }
 
-  const result = await regenerate({
+  const result = await regenerateGenerate({
     sessionId: args.sessionId,
     bundleId: args.bundleId,
     index: args.index,
@@ -30,9 +30,8 @@ export async function regenerateIcon(args: {
   });
 
   return {
-    success: result.success,
-    index: result.index,
-    preview: result.preview,
+    candidates: result.candidates,
+    regenToken: result.regenToken,
     creditsRemaining: result.credits,
   };
 }

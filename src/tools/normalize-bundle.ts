@@ -23,6 +23,7 @@ export async function normalizeBundleTool(args: {
   });
 
   return {
+    bundleId: result.bundleId,
     icons: result.icons,
     bundleType: result.bundleType,
     suggestedCount: result.suggestedCount,
