@@ -7,6 +7,10 @@
 
 MCP (Model Context Protocol) server for IcoGenie. Enables AI agents like Claude to generate production-ready SVG icons programmatically.
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/albertnahas-icogenie-mcp).
+
 ## Installation
 
 ```bash
